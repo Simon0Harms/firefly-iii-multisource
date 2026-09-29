@@ -114,6 +114,9 @@ jobs:
           composer install --no-interaction --no-progress --no-scripts
           cp .env.example .env
           php artisan key:generate --force
+          # the API needs OAuth (Passport) keys, otherwise requests fail with "Invalid key supplied"
+          php artisan firefly-iii:laravel-passport-keys || php artisan passport:keys --force
+          ls -l storage/oauth-*.key
           vendor/bin/phpunit --no-coverage --filter MultiSourceSplitTest tests/integration
 
       - name: Build frontend (v3, like upstream)
