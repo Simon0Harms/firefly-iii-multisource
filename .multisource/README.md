@@ -1,27 +1,30 @@
 # firefly-iii-multisource
 
-**Inoffizieller Fork von [Firefly III](https://github.com/firefly-iii/firefly-iii) – vom Upstream-Projekt nicht unterstützt.**
-Probleme bitte erst auf einer unveränderten Instanz nachstellen, bevor sie upstream gemeldet werden.
+**Unofficial fork of [Firefly III](https://github.com/firefly-iii/firefly-iii) – not supported by the upstream project.**
+Please reproduce problems on an unmodified instance before reporting them upstream.
 
-## Was ist anders?
-- Split-**Ausgaben** dürfen verschiedene **Quellkonten** haben (z. B. teils Girokonto, teils Gutschein).
-- Split-**Einnahmen** dürfen verschiedene **Zielkonten** haben.
-- Transfers bleiben unverändert (gleiche Quelle + Ziel).
+This fork was created with AI (Claude by Anthropic).
 
-Geändert (siehe `multisource.patch`): Validierung beim Anlegen/Bearbeiten, die stille
-Vereinheitlichung der Konten bei Updates und `correction:group-accounts`, sowie die
-Split-Logik der Transaktionsformulare. Dazu der Regressionstest `MultiSourceSplitTest`.
+## What is different?
+- Split **withdrawals** may have different **source accounts** (e.g. partly bank account, partly gift voucher).
+- Split **deposits** may have different **destination accounts**.
+- Transfers are unchanged (same source and destination for all splits).
 
-## Wie Releases entstehen
-`.github/workflows/multisource-release.yml` prüft täglich auf neue Upstream-Releases,
-wendet den Patch an, führt den Regressionstest aus, baut das Frontend und veröffentlicht
-`FireflyIII-multisource-<tag>.zip`. Scheitert Patch, Wächter oder Test, gibt es **kein** Release.
+Changed (see `multisource.patch`): validation on create/update, the silent account
+unification on updates and in `correction:group-accounts`, and the split logic of the
+transaction forms. Plus the regression test `MultiSourceSplitTest`.
 
-## ⚠️ Wichtig für den Betrieb
-- **Niemals** das Upstream-/Community-`update` ausführen: Es installiert Original-Firefly, und
-  `firefly-iii:upgrade-database` bucht alle Splits mit mehreren Quellkonten **still** auf ein Konto um.
-- Im LXC stattdessen `firefly-update` nutzen (`.multisource/firefly-update.sh`, mit `--install-guard` einrichten).
-- **Rückkehr zu Upstream:** vorher alle Split-Buchungen mit mehreren Quell-/Zielkonten in Einzelbuchungen aufteilen.
+## How releases are built
+`.github/workflows/multisource-release.yml` checks daily for new upstream releases,
+applies the patch, runs the regression test, builds the frontend and publishes
+`FireflyIII-multisource-<tag>.zip`. If the patch, the guard check or the test fails,
+**no** release is published.
 
-## Patch aktualisieren
-Nach Änderungen am Code: `git diff upstream-tag -- app resources tests > .multisource/multisource.patch`
+## ⚠️ Operating notes
+- **Never** run the upstream / community-scripts `update`: it installs original Firefly III, and
+  `firefly-iii:upgrade-database` **silently** rebooks all splits with multiple source accounts onto one account.
+- In the LXC use `firefly-update` instead (`.multisource/firefly-update.sh`, set up with `--install-guard`).
+- **Returning to upstream:** first split all transaction groups with multiple source/destination accounts into separate transactions.
+
+## Updating the patch
+After changing the code: `git diff <upstream-tag> -- app resources tests > .multisource/multisource.patch`

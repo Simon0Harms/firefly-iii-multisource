@@ -1,3 +1,22 @@
+> [!WARNING]
+> ## firefly-iii-multisource – unofficial fork of Firefly III
+>
+> **This is not an official Firefly III project and is not supported by the Firefly III team.**
+> Please do not report issues from this version upstream unless you have reproduced them on an unmodified Firefly III instance.
+>
+> **AI-generated:** The changes in this fork (patch, tests, build workflow and update script) were created with AI (Claude by Anthropic) and reviewed by the repository owner.
+>
+> **The only difference from the original:**
+> - Split **withdrawals** may use different **source accounts** (e.g. partly bank account, partly gift voucher).
+> - Split **deposits** may use different **destination accounts**.
+> - Transfers are unchanged. Everything else is identical to the corresponding upstream release.
+>
+> **⚠️ Before returning to upstream Firefly III**, split every transaction group that uses more than one source or destination account into separate transactions. Otherwise `firefly-iii:upgrade-database` (via `correction:group-accounts`) will **silently** rebook them onto a single account during the first upgrade, and your account balances will be wrong.
+>
+> Details, build process and operating notes: [`.multisource/README.md`](.multisource/README.md)
+
+---
+
 <p align="center">
   <a href="https://firefly-iii.org/">
     <img src="https://raw.githubusercontent.com/firefly-iii/firefly-iii/develop/.github/assets/img/logo-small.png" alt="Firefly III" width="120" height="178">
