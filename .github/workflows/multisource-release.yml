@@ -131,6 +131,8 @@ jobs:
         working-directory: app
         run: |
           rm -f .env
+          # caches from the test run (with dev packages) must not end up in the release
+          rm -f bootstrap/cache/*.php
           rm -rf vendor
           composer install --no-interaction --no-progress --no-scripts --no-dev --optimize-autoloader
           echo "${{ steps.tag.outputs.release }}" > MULTISOURCE_VERSION

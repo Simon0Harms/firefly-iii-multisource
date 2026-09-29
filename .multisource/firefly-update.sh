@@ -235,6 +235,8 @@ artisan down 2>/dev/null || true
 TARGET="$RELEASES/$NEW"
 rm -rf "$TARGET" && mkdir -p "$TARGET"
 unzip -q "$TMP/ff.zip" -d "$TARGET"
+# never trust Laravel caches shipped in an archive (stale package/service lists)
+rm -f "$TARGET"/bootstrap/cache/*.php
 if [[ ! -d "$SHARED/storage" ]]; then mv "$TARGET/storage" "$SHARED/storage"; fi
 if [[ ! -f "$SHARED/.env" ]]; then
   log "creating $SHARED/.env from .env.example"
