@@ -17,6 +17,7 @@ use FireflyIII\Models\TransactionGroup;
 use FireflyIII\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Laravel\Passport\Passport;
 use Override;
 use Tests\integration\TestCase;
 
@@ -78,7 +79,8 @@ final class MultiSourceSplitTest extends TestCase
     {
         parent::setUp();
         $this->user    = $this->createAuthenticatedUser();
-        $this->actingAs($this->user);
+        // the API uses the Passport 'api' guard; a session login (actingAs) gives 401.
+        Passport::actingAs($this->user);
         $this->bank    = Account::factory()->for($this->user)->withType(AccountTypeEnum::ASSET)->create(['name' => 'Girokonto']);
         $this->voucher = Account::factory()->for($this->user)->withType(AccountTypeEnum::ASSET)->create(['name' => 'Gutschein']);
     }

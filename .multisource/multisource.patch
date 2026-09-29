@@ -101,10 +101,10 @@ index 696cf47..aa8005d 100644
                      current.source_id = returnArray[0].source_id;
 diff --git a/tests/integration/Api/Models/Transaction/MultiSourceSplitTest.php b/tests/integration/Api/Models/Transaction/MultiSourceSplitTest.php
 new file mode 100644
-index 0000000..26bfc76
+index 0000000..7a30558
 --- /dev/null
 +++ b/tests/integration/Api/Models/Transaction/MultiSourceSplitTest.php
-@@ -0,0 +1,115 @@
+@@ -0,0 +1,117 @@
 +<?php
 +
 +/*
@@ -124,6 +124,7 @@ index 0000000..26bfc76
 +use FireflyIII\User;
 +use Illuminate\Foundation\Testing\RefreshDatabase;
 +use Illuminate\Support\Facades\Artisan;
++use Laravel\Passport\Passport;
 +use Override;
 +use Tests\integration\TestCase;
 +
@@ -185,7 +186,8 @@ index 0000000..26bfc76
 +    {
 +        parent::setUp();
 +        $this->user    = $this->createAuthenticatedUser();
-+        $this->actingAs($this->user);
++        // the API uses the Passport 'api' guard; a session login (actingAs) gives 401.
++        Passport::actingAs($this->user);
 +        $this->bank    = Account::factory()->for($this->user)->withType(AccountTypeEnum::ASSET)->create(['name' => 'Girokonto']);
 +        $this->voucher = Account::factory()->for($this->user)->withType(AccountTypeEnum::ASSET)->create(['name' => 'Gutschein']);
 +    }
