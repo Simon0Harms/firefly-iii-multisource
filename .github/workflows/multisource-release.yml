@@ -119,6 +119,23 @@ jobs:
           ls -l storage/oauth-*.key
           vendor/bin/phpunit --no-coverage --filter MultiSourceSplitTest tests/integration
 
+      - name: Generate frontend translations (v3, like upstream)
+        if: steps.tag.outputs.skip == 'false'
+        uses: JC5/firefly-iii-dev@main
+        with:
+          action: 'ff3:json-translations v3'
+          output: ''
+        env:
+          FIREFLY_III_ROOT: /github/workspace/app
+          GH_TOKEN: ''
+
+      - name: Check translations exist
+        if: steps.tag.outputs.skip == 'false'
+        working-directory: app
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" public
+          ls public/v3/i18n/en_US.json public/v3/i18n/de_DE.json
+
       - name: Build frontend (v3, like upstream)
         if: steps.tag.outputs.skip == 'false'
         working-directory: app
