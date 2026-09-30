@@ -1,0 +1,16 @@
+--- a/src/Illuminate/Routing/CompiledRouteCollection.php
++++ b/src/Illuminate/Routing/CompiledRouteCollection.php
+@@ -176,6 +176,13 @@
+ 
+         $parts = explode('?', $request->server->get('REQUEST_URI'), 2);
+ 
++        // Keep the trailing slash when the URI is exactly the base URL
++        // (app served from a subdirectory). Trimming it breaks base URL
++        // detection and "/" is no longer matched by the compiled matcher.
++        if (rtrim($parts[0], '/') === rtrim($request->getBaseUrl(), '/')) {
++            return $trimmedRequest;
++        }
++
+         $trimmedRequest->server->set(
+             'REQUEST_URI', rtrim($parts[0], '/').(isset($parts[1]) ? '?'.$parts[1] : '')
+         );

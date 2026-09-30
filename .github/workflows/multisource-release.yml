@@ -156,6 +156,10 @@ jobs:
           rm -f bootstrap/cache/*.php
           rm -rf vendor
           composer install --no-interaction --no-progress --no-scripts --no-dev --optimize-autoloader
+          # Laravel bug: with route:cache, "/" returns 405 when served from a subdirectory.
+          # Fail the build if the patch no longer applies (e.g. after a Laravel update).
+          patch -p1 --forward -d vendor/laravel/framework < ../fork/.multisource/laravel-compiled-route-subdir-root.patch
+          grep -q "Keep the trailing slash when the URI is exactly the base URL" vendor/laravel/framework/src/Illuminate/Routing/CompiledRouteCollection.php
           echo "${{ steps.tag.outputs.release }}" > MULTISOURCE_VERSION
           ZIP="FireflyIII-multisource-${{ steps.tag.outputs.upstream }}.zip"
           zip -rq "../$ZIP" . -x "*.git*" "*.ci*" "*.github*" "*node_modules*" "*output.txt*" "*Procfile*" "*crowdin.yml*" "*sonar-project.properties*"
