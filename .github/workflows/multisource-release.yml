@@ -119,22 +119,26 @@ jobs:
           ls -l storage/oauth-*.key
           vendor/bin/phpunit --no-coverage --filter MultiSourceSplitTest tests/integration
 
-      - name: Generate frontend translations (v3, like upstream)
+      - name: Take translations from the upstream release
         if: steps.tag.outputs.skip == 'false'
-        uses: JC5/firefly-iii-dev@main
-        with:
-          action: 'ff3:json-translations v3'
-          output: ''
         env:
-          FIREFLY_III_ROOT: /github/workspace/app
-          GH_TOKEN: ''
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Upstream pulls translations from Crowdin (needs their secrets) and generates
+          # public/v3/i18n during its release. The patch changes no texts, so we reuse
+          # the translations of the official release zip for the same tag.
+          mkdir -p upstream-zip
+          gh release download "${{ steps.tag.outputs.upstream }}" -R "$UPSTREAM" \
+            --pattern 'FireflyIII-*.zip' --dir upstream-zip
+          ZIP=$(ls upstream-zip/FireflyIII-*.zip | grep -v sha256 | head -1)
+          unzip -q -o "$ZIP" 'resources/lang/*' 'public/v3/i18n/*' -d app
+          rm -rf upstream-zip
 
       - name: Check translations exist
         if: steps.tag.outputs.skip == 'false'
         working-directory: app
         run: |
-          sudo chown -R "$(id -u):$(id -g)" public
-          ls public/v3/i18n/en_US.json public/v3/i18n/de_DE.json
+          ls public/v3/i18n/en-US.json public/v3/i18n/de-DE.json resources/lang/de_DE/firefly.php
 
       - name: Build frontend (v3, like upstream)
         if: steps.tag.outputs.skip == 'false'
