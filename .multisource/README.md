@@ -28,3 +28,8 @@ applies the patch, runs the regression test, builds the frontend and publishes
 
 ## Updating the patch
 After changing the code: `git diff <upstream-tag> -- app resources tests > .multisource/multisource.patch`
+
+## GnuCash import / export
+Separate project: [firefly-iii-gnucash](https://github.com/Simon0Harms/firefly-iii-gnucash) imports a
+GnuCash book into Firefly III and exports Firefly III as a GnuCash book, via the REST API. Split
+transactions with several source accounts use the multisource feature of this fork.

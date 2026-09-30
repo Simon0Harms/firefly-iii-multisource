@@ -14,6 +14,8 @@
 > **⚠️ Before returning to upstream Firefly III**, split every transaction group that uses more than one source or destination account into separate transactions. Otherwise `firefly-iii:upgrade-database` (via `correction:group-accounts`) will **silently** rebook them onto a single account during the first upgrade, and your account balances will be wrong.
 >
 > Details, build process and operating notes: [`.multisource/README.md`](.multisource/README.md)
+>
+> **Extra tool (separate repo):** GnuCash import/export via the API – [firefly-iii-gnucash](https://github.com/Simon0Harms/firefly-iii-gnucash)
 
 ---
 
