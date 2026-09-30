@@ -24,6 +24,12 @@
 #   firefly-update --rollback [TS] switch back to the release of backup TS (default:
 #                                  newest) and restore its database, .env and storage
 #   firefly-update --install-guard block the community 'update' command
+#   firefly-update --no-system     skip OS package updates (PHP, MariaDB, Apache, ...)
+#   firefly-update --no-importer   skip the Data Importer update
+#
+# Like the community-scripts 'update', a normal run also updates the OS packages
+# (apt upgrade: PHP, MariaDB, Apache from the repos set up at install time) and the
+# Firefly Data Importer (if /opt/firefly/dataimporter exists).
 #   firefly-update --init-db-password PW   first install into an empty /opt/firefly:
 #                                  creates shared/.env (DB firefly@localhost, new APP_KEY)
 #
@@ -179,8 +185,51 @@ rollback() {
   log "rollback done: $rel"
 }
 
+update_system() {
+  log "updating OS packages (apt)"
+  local root_free
+  root_free=$(df -Pm / | awk 'NR==2 {print $4}')
+  (( root_free >= 300 )) || { warn "only ${root_free} MB free on / - skipping apt upgrade"; return 0; }
+  DEBIAN_FRONTEND=noninteractive apt-get update -q
+  DEBIAN_FRONTEND=noninteractive apt-get -y -q -o Dpkg::Options::=--force-confold upgrade
+  apt-get -y -q autoremove --purge
+  apt-get -q clean
+  systemctl restart mariadb 2>/dev/null || true
+  command -v composer >/dev/null && composer self-update -q 2>/dev/null || true
+}
+
+update_importer() {
+  local dir="$BASE/dataimporter" json url cur new tmp
+  [[ -d "$dir" ]] || return 0
+  json=$(curl -fsSL https://api.github.com/repos/firefly-iii/data-importer/releases/latest)
+  new=$(jq -r .tag_name <<<"$json")
+  cur=$(cat "$dir/.multisource-version" 2>/dev/null || echo unknown)
+  if [[ "$cur" == "$new" ]]; then log "Data Importer already at $new"; return 0; fi
+  url=$(jq -r '.assets[] | select(.name|test("^DataImporter-v.*\\.tar\\.gz$")) | .browser_download_url' <<<"$json" | head -1)
+  [[ -n "$url" ]] || { warn "no Data Importer asset found - skipped"; return 0; }
+  log "updating Data Importer $cur -> $new"
+  tmp=$(mktemp -d)
+  curl -fsSL "$url" -o "$tmp/di.tar.gz"
+  mkdir "$tmp/x" && tar -xzf "$tmp/di.tar.gz" -C "$tmp/x"
+  # archive may contain one top-level directory - unwrap it
+  if [[ $(find "$tmp/x" -mindepth 1 -maxdepth 1 | wc -l) -eq 1 && -d $(find "$tmp/x" -mindepth 1 -maxdepth 1) ]]; then
+    mv "$(find "$tmp/x" -mindepth 1 -maxdepth 1)" "$tmp/new"
+  else
+    mv "$tmp/x" "$tmp/new"
+  fi
+  [[ -f "$tmp/new/artisan" ]] || { warn "unexpected Data Importer archive layout - skipped"; rm -rf "$tmp"; return 0; }
+  [[ -f "$dir/.env" ]] && cp "$dir/.env" "$tmp/new/.env"
+  [[ -d "$dir/storage" ]] && { rm -rf "$tmp/new/storage"; cp -a "$dir/storage" "$tmp/new/storage"; }
+  echo "$new" > "$tmp/new/.multisource-version"
+  # swap contents (dataimporter itself is never moved)
+  find "$dir" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+  cp -a "$tmp/new/." "$dir/"
+  rm -rf "$tmp"
+  chown -R "$WEB_USER:$WEB_USER" "$dir"
+}
+
 # --- options ------------------------------------------------------------------
-CHECK_ONLY=0; TAG=""; INIT_DB_PW=""
+CHECK_ONLY=0; TAG=""; INIT_DB_PW=""; DO_SYSTEM=1; DO_IMPORTER=1
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --check) CHECK_ONLY=1 ;;
@@ -189,6 +238,8 @@ while [[ $# -gt 0 ]]; do
     --list-backups) for d in "$BACKUPS"/*/; do [[ -d "$d" ]] && echo "$(basename "$d")  release=$(cat "$d/release")  $(du -sh "$d" | cut -f1)"; done; exit 0 ;;
     --rollback) rollback "${2:-}"; exit 0 ;;
     --init-db-password) INIT_DB_PW="$2"; shift ;;
+    --no-system) DO_SYSTEM=0 ;;
+    --no-importer) DO_IMPORTER=0 ;;
     *) die "unknown option $1" ;;
   esac
   shift
@@ -208,7 +259,13 @@ SHA_URL=$(jq -r '.assets[] | select(.name|test("\\.zip\\.sha256$")) | .browser_d
 CUR=$(basename "$(readlink -f "$CURRENT" 2>/dev/null || echo none)")
 log "installed: $CUR   available: $NEW"
 [[ $CHECK_ONLY -eq 1 ]] && exit 0
-[[ "$CUR" == "$NEW" ]] && { log "already up to date"; exit 0; }
+(( DO_SYSTEM )) && update_system
+if [[ "$CUR" == "$NEW" ]]; then
+  log "Firefly already up to date"
+  (( DO_IMPORTER )) && update_importer
+  systemctl reload apache2 || true
+  exit 0
+fi
 [[ -f "$SHARED/.env" || -n "$INIT_DB_PW" ]] || die "$SHARED/.env missing - for a first install use --init-db-password"
 
 # --- download (to /tmp, a tmpfs) and verify -------------------------------------
@@ -253,6 +310,8 @@ fi
 link_shared "$TARGET"
 chown -R "$WEB_USER:$WEB_USER" "$TARGET" "$SHARED"
 chmod -R 775 "$SHARED/storage"
+mkdir -p "$SHARED"/storage/{framework/cache/data,framework/sessions,framework/views,logs} "$TARGET/bootstrap/cache"
+chown -R "$WEB_USER:$WEB_USER" "$SHARED/storage" "$TARGET/bootstrap/cache"
 ln -sfn "$TARGET" "$CURRENT"
 adjust_paths
 
@@ -266,7 +325,8 @@ artisan firefly-iii:laravel-passport-keys
 artisan storage:link || true
 artisan optimize
 artisan up || true
-systemctl reload apache2 || true
+(( DO_IMPORTER )) && update_importer
+systemctl restart apache2 || true
 
 # keep the newest KEEP_RELEASES releases (never the current one)
 ls -1dt "$RELEASES"/*/ | tail -n +$((KEEP_RELEASES+1)) | while read -r d; do
