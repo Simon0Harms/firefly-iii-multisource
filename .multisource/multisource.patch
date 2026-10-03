@@ -60,11 +60,11 @@ index ebb2bb4..72591ba 100644
          // I think I can get away with one combination being equal, as long as the rest
          // of the code picks up on this as well.
 diff --git a/resources/assets/v3/js/pages/transactions/shared/disable-split-inputs.js b/resources/assets/v3/js/pages/transactions/shared/disable-split-inputs.js
-index 83c728d..0d743c5 100644
+index 578e40d..301c2bd 100644
 --- a/resources/assets/v3/js/pages/transactions/shared/disable-split-inputs.js
 +++ b/resources/assets/v3/js/pages/transactions/shared/disable-split-inputs.js
-@@ -22,10 +22,9 @@
- import Autocomplete from "bootstrap5-autocomplete";
+@@ -23,10 +23,9 @@ import Autocomplete from "bootstrap5-autocomplete";
+ import getExpectedAccountTypes from "../../../form/get-expected-account-types.js";
  
  export function disableSplitInputs() {
 -    let isTransferOrWithdrawal =
@@ -78,10 +78,10 @@ index 83c728d..0d743c5 100644
      // disable source and/or destination, based on account type.
      for (let i = 0; i < this.entries.length; i++) {
 diff --git a/resources/assets/v3/js/pages/transactions/shared/parse-from-entries.js b/resources/assets/v3/js/pages/transactions/shared/parse-from-entries.js
-index 696cf47..aa8005d 100644
+index 8bdde4f..63e3364 100644
 --- a/resources/assets/v3/js/pages/transactions/shared/parse-from-entries.js
 +++ b/resources/assets/v3/js/pages/transactions/shared/parse-from-entries.js
-@@ -124,16 +124,7 @@ export function parseFromEntries(entries, originals, transactionType) {
+@@ -131,16 +131,7 @@ export function parseFromEntries(entries, originals, transactionType) {
                  current.destination_id = entry.destination_account.id;
              }
              if (i > 0) {
