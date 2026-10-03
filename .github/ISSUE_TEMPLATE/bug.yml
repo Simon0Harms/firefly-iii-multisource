@@ -1,59 +1,49 @@
 name: Bug report
-description: Report a bug in Firefly III (or associated tools)
+description: Something does not work in firefly-iii-multisource
+labels: ["bug"]
 body:
-  - type: checkboxes
+  - type: markdown
     attributes:
-      label: Support guidelines
-      description: Thank you for reading the support guidelines before proceeding.
+      value: |
+        This is an **unofficial fork** of Firefly III. Please do not report problems from this fork to the Firefly III team.
+        AI assistance is welcome here, but please check what you submit.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
       options:
-        - label: I'm smart and I read the <!-- MZ2udTpin6FL --> [support guidelines](https://github.com/firefly-iii/firefly-iii/blob/main/.github/support.md)
-          required: true
-  - type: checkboxes
-    attributes:
-      label: Use of AI
-      description: AI agents like Claude and CoPilot are not reliable tools. Do not use them.
-      options:
-        - label: I'm a real person and wrote this bug without assistance from AI.
-          required: false
-
-  - type: checkboxes
-    attributes:
-      label: I've found a bug and checked that ...
-      description: Make sure that your request fulfills all of the following requirements. If one requirement cannot be satisfied, please explain why.
-      options:
-        - label: ... [the documentation](https://docs.firefly-iii.org/) does not mention anything about my problem
-        - label: ... there are no open or closed issues that are related to my problem
-        - label: ... it's [definitely a Firefly III issue, not me](https://github.com/firefly-iii/firefly-iii/blob/main/.github/its_you_not_me.md)
-
-  - type: textarea
-    attributes:
-      label: Description
-      description: Please provide a brief description of the bug in 1-2 sentences.
-      placeholder: Please DO NOT use AI / LLM to write the description for you.
+        - Split transactions with multiple source/destination accounts
+        - Release build / GitHub workflow
+        - firefly-update (LXC update script)
+        - Other
     validations:
       required: true
-
   - type: textarea
+    id: description
     attributes:
-      label: Debug information
-      description: Please provide the table from the /debug page. Do not add backticks or quotes.
-      placeholder: The output from the /debug page or "N/A"
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
     validations:
       required: true
-
-  - type: textarea
+  - type: dropdown
+    id: upstream
     attributes:
-      label: Steps to reproduce
-      description: Please describe the steps to reproduce the bug.
-      placeholder: |
-        1. ...
-        2. ...
-        3. ...
+      label: Does it also happen in upstream Firefly III?
+      options:
+        - "No – only in this fork"
+        - "Yes – also in upstream"
+        - Not tested
     validations:
-      required: false
-
-  - type: textarea
+      required: true
+  - type: input
+    id: version
     attributes:
-      label: Additional info
-      description: Please provide any additional information that seems useful.
-      placeholder: Please DO NOT use AI / LLM to write the additional info for you.
+      label: Version
+      description: Output of `firefly-update --check` or the release tag (e.g. v6.7.7-multisource)
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: Workflow log, `storage/logs/*.log`, script output (remove personal data)
