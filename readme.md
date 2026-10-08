@@ -1,3 +1,16 @@
+> [!IMPORTANT]
+> ## Archived – continued as [gnubook](https://github.com/Simon0Harms/gnubook)
+>
+> This fork is **no longer maintained** and the repository is read-only. No new releases will be built.
+> Its goals, split bookings with several source accounts and bank balance checkpoints, now live in
+> **[gnubook](https://github.com/Simon0Harms/gnubook)**. gnubook is a Firefly-style web frontend that works
+> directly on a GnuCash book in PostgreSQL and imports via the same
+> [FinTS importer](https://github.com/bnw/firefly-iii-fints-importer).
+>
+> **If you still run this fork:** before you switch to upstream Firefly III, split every transaction group
+> that uses more than one source or destination account (see the warning below). Otherwise the first
+> database upgrade silently rebooks them onto a single account.
+
 > [!WARNING]
 > ## firefly-iii-multisource – unofficial fork of Firefly III
 >
@@ -6,16 +19,13 @@
 >
 > **AI-generated:** The changes in this fork (patch, tests, build workflow and update script) were created with AI (Claude by Anthropic) and reviewed by the repository owner.
 >
-> **The only difference from the original:**
-> - Split **withdrawals** may use different **source accounts** (e.g. partly bank account, partly gift voucher).
-> - Split **deposits** may use different **destination accounts**.
-> - Transfers are unchanged. Everything else is identical to the corresponding upstream release.
+> **Differences from the original** (everything else is identical to the corresponding upstream release):
+> - Split **withdrawals** may use different **source accounts** (e.g. partly bank account, partly gift voucher); split **deposits** may use different **destination accounts**. Transfers are unchanged.
+> - **Balance checkpoints:** bank balance lines such as `ENDSALDO … STAND 29.05.2026 1.328,49H` are compared with the booked balance after every change; deviations are tagged `saldo-abweichung`. Postings of 0.00 are allowed for such lines only.
 >
 > **⚠️ Before returning to upstream Firefly III**, split every transaction group that uses more than one source or destination account into separate transactions. Otherwise `firefly-iii:upgrade-database` (via `correction:group-accounts`) will **silently** rebook them onto a single account during the first upgrade, and your account balances will be wrong.
 >
 > Details, build process and operating notes: [`.multisource/README.md`](.multisource/README.md)
->
-> **Extra tool (separate repo):** GnuCash import/export via the API – [firefly-iii-gnucash](https://github.com/Simon0Harms/firefly-iii-gnucash)
 
 ---
 
